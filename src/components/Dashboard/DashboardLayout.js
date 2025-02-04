@@ -2,6 +2,12 @@
 import React from "react";
 import { AppBar, Box, CssBaseline, Drawer, Toolbar, Typography, List, ListItem, ListItemText } from "@mui/material";
 import { Link } from "react-router-dom";
+import MenuIcon from "@mui/icons-material/Menu";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import HomeWorkIcon from "@mui/icons-material/HomeWork";
+import PeopleIcon from "@mui/icons-material/People";
+import EventNoteIcon from "@mui/icons-material/EventNote";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 const drawerWidth = 240;
 const leftSpace = 100;
@@ -32,15 +38,19 @@ export default function DashboardLayout({ children }) {
         <Toolbar />
         <List>
           <ListItem button component={Link} to="/admin">
-              <ListItemText primary="Dashboard" />
+            <DashboardIcon sx={{ mr: 2, color: "#64b5f6" }} />
+            <ListItemText primary="Dashboard" />
           </ListItem>
           <ListItem button component={Link} to="/admin/manage-flats">
+            <HomeWorkIcon sx={{ mr: 2, color: "#ffca28" }} />
             <ListItemText primary="Manage Flats" />
           </ListItem>
           <ListItem button component={Link} to="/admin/manage-users">
+            <PeopleIcon sx={{ mr: 2, color: "#4caf50" }} />
             <ListItemText primary="Manage Users" />
           </ListItem>
           <ListItem button component={Link} to="/admin/manage-bookings">
+            <EventNoteIcon sx={{ mr: 2, color: "#f44336" }} />
             <ListItemText primary="Manage Bookings" />
           </ListItem>
         </List>
@@ -51,3 +61,4 @@ export default function DashboardLayout({ children }) {
     </Box>
   );
 }
+
