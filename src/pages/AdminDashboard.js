@@ -30,7 +30,6 @@ const RecentActivitiesCarousel = () => {
     const [activities, setActivities] = useState([]);
     const [slideDirection, setSlideDirection] = useState("next");
 
-
     useEffect(() => {
         async function fetchActivities() {
             try {
@@ -48,21 +47,9 @@ const RecentActivitiesCarousel = () => {
             const interval = setInterval(() => {
                 handleNext();
             }, 3000);
-
-            return () => clearInterval(interval); // Cleanup on unmount
+            return () => clearInterval(interval);
         }
     }, [activities]);
-
-
-    const nextSlide = () => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % activities.length);
-    };
-
-    const prevSlide = () => {
-        setCurrentIndex((prevIndex) =>
-            prevIndex === 0 ? activities.length - 1 : prevIndex - 1
-        );
-    };
 
     const handleNext = () => {
         setSlideDirection("next");
@@ -77,33 +64,41 @@ const RecentActivitiesCarousel = () => {
     };
 
     return (
-        <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, textAlign: "center" }}>
+        <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, textAlign: "center", maxWidth: 500, mx: "auto" }}>
             <CardContent>
                 <Typography variant="h6" fontWeight={600} gutterBottom>
                     Recent Activities
                 </Typography>
 
                 {activities.length > 0 ? (
-                    <Box sx={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", height: "100px", overflow: "hidden"}}>
+                    <Box sx={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", height: "250px", overflow: "hidden" }}>
                         {/* Left Arrow */}
-                        <IconButton onClick={handlePrev} sx={{ position: "absolute", left: 0 }}>
+                        <IconButton onClick={handlePrev} sx={{ position: "absolute", left: 0, zIndex: 1 }}>
                             <ArrowBackIos />
                         </IconButton>
 
                         {/* Activity Slide */}
-                        <Box>
-                            <Typography variant="body1" fontWeight={500}>
+                        <Box sx={{ textAlign: "center" }}>
+                            {/* Display Image */}
+                            {activities[currentIndex].images?.length > 0 && (
+                                <img
+                                    src={`${activities[currentIndex].images[0]}`}  
+                                    alt="Flat"
+                                    style={{ width: "100%", height: "200px", objectFit: "fill", borderRadius: "8px" }}
+                                />
+                            )}
+
+                            {/* Activity Description */}
+                            <Typography variant="body1" fontWeight={500} sx={{ mt: 1 }}>
                                 {activities[currentIndex].description}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                                {activities[currentIndex].timestamp}
+                                {new Date(activities[currentIndex].timestamp).toLocaleString()}
                             </Typography>
                         </Box>
 
-                       
-
                         {/* Right Arrow */}
-                        <IconButton onClick={nextSlide} sx={{ position: "absolute", right: 0 }}>
+                        <IconButton onClick={handleNext} sx={{ position: "absolute", right: 0, zIndex: 1 }}>
                             <ArrowForwardIos />
                         </IconButton>
                     </Box>
@@ -191,7 +186,7 @@ const AdminDashboard = () => {
                 5 Flats are currently unavailable due to maintenance.
             </Alert>
             <Box sx={{ p: 3 }}>
-                <Grid container spacing={3}>
+                <Grid container spacing={2}>
                     <Grid item xs={12} md={4}><StatCard title="Total Flats" value={stats.totalFlats} /></Grid>
                     <Grid item xs={12} md={4}><StatCard title="Total Users" value={stats.totalUsers} /></Grid>
                     <Grid item xs={12} md={4}><StatCard title="Total Bookings" value={stats.totalBookings} /></Grid>

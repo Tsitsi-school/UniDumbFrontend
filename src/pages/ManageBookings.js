@@ -28,6 +28,8 @@ function ManageBookings() {
   const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedFlat, setSelectedFlat] = useState(null); // Stores the clicked flat's details
+  const [filteredBookings, setFilteredBookings] = useState([]); // Stores filtered bookings
+  const [searchQuery, setSearchQuery] = useState(""); // Search input
   const [updatedBooking, setUpdatedBooking] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
@@ -37,12 +39,29 @@ function ManageBookings() {
       try {
         const data = await getBookings();
         setBookings(data);
+        setFilteredBookings(data); // Initialize with all bookings
       } catch (error) {
         console.error("Error fetching bookings:", error);
       }
     }
     fetchBookings();
   }, []);
+
+  // Search Function
+  const handleSearchChange = (event) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    const filtered = bookings.filter((booking) =>
+      (booking.flatId && booking.flatId.toString().includes(query)) ||
+      (booking.userEmail && booking.userEmail.toLowerCase().includes(query)) ||
+      (booking.startDate && booking.startDate.includes(query)) ||
+      (booking.endDate && booking.endDate.includes(query)) ||
+      (booking.status && booking.status.toLowerCase().includes(query))
+    );
+
+    setFilteredBookings(filtered);
+  };
 
   const handleSelectBooking = async (id) => {
     try {
@@ -114,81 +133,91 @@ function ManageBookings() {
         + Add New Booking
       </Button>
 
+      {/* Search Bar */}
+      <TextField
+        label="Search Bookings"
+        variant="outlined"
+        fullWidth
+        value={searchQuery}
+        onChange={handleSearchChange}
+        sx={{ mb: 3 }}
+      />
+
       {/* Booking Details */}
-{selectedBooking && (
-  <Paper sx={{ mt: 3, p: 3 }}>
-    <Typography variant="h5">Booking Details</Typography>
-    <p><strong>Booking ID:</strong> {selectedBooking.id}</p>
-    <p><strong>User:</strong> {selectedBooking.userEmail}</p>
-    <p><strong>Start Date:</strong> {selectedBooking.startDate}</p>
-    <p><strong>End Date:</strong> {selectedBooking.endDate}</p>
-    <p><strong>Status:</strong> {selectedBooking.status}</p>
+  {selectedBooking && (
+    <Paper sx={{ mt: 3, p: 3 }}>
+      <Typography variant="h5">Booking Details</Typography>
+      <p><strong>Booking ID:</strong> {selectedBooking.id}</p>
+      <p><strong>User:</strong> {selectedBooking.userEmail}</p>
+      <p><strong>Start Date:</strong> {selectedBooking.startDate}</p>
+      <p><strong>End Date:</strong> {selectedBooking.endDate}</p>
+      <p><strong>Status:</strong> {selectedBooking.status}</p>
 
-    {selectedFlat && (
-      <>
-        <Typography variant="h5" sx={{ mt: 2 }}>Apartment Details</Typography>
-        <p><strong>Name:</strong> {selectedFlat.name}</p>
-        <p><strong>Location:</strong> {selectedFlat.location}</p>
-        <p><strong>Price:</strong> ${selectedFlat.price}</p>
-        <p><strong>Availability:</strong> {selectedFlat.availability || "Unknown"}</p>
+      {selectedFlat && (
+        <>
+          <Typography variant="h5" sx={{ mt: 2 }}>Apartment Details</Typography>
+          <p><strong>Name:</strong> {selectedFlat.name}</p>
+          <p><strong>Location:</strong> {selectedFlat.location}</p>
+          <p><strong>Price:</strong> ${selectedFlat.price}</p>
+          <p><strong>Availability:</strong> {selectedFlat.availability || "Unknown"}</p>
 
-        {/* Display images if available */}
-        {selectedFlat.images?.length > 0 && (
-          <div>
-            <strong>Images:</strong>
-            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-              {selectedFlat.images.map((img, index) => (
-                <img
-                  key={index}
-                  src={`http://localhost:8080/${img}`}
-                  alt={`Flat ${index}`}
-                  style={{
-                    width: "400px",
-                    height: "400px",
-                    objectFit: "cover",
-                    borderRadius: "5px",
-                  }}
-                />
-              ))}
+          {/* Display images if available */}
+          {selectedFlat.images?.length > 0 && (
+            <div>
+              <strong>Images:</strong>
+              <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                {selectedFlat.images.map((img, index) => (
+                  <img
+                    key={index}
+                    src={`${img}`}
+                    alt={`Flat ${index}`}
+                    style={{
+                      width: "400px",
+                      height: "400px",
+                      objectFit: "cover",
+                      borderRadius: "5px",
+                    }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </>
-    )}
+          )}
+        </>
+      )}
 
-    {/* Action buttons */}
-    <Button variant="contained" onClick={() => setIsEditing(true)} sx={{ mt: 2, mr: 2 }}>
-      Edit Booking
-    </Button>
-    <Button
-      variant="outlined"
-      color="error"
-      onClick={() => handleCancelBooking(selectedBooking.id)}
-      sx={{ mt: 2, mr: 2 }}
-    >
-      Cancel Booking
-    </Button>
-    <Button
-      variant="outlined"
-      color="error"
-      onClick={() => handleDeleteBooking(selectedBooking.id)}
-      sx={{ mt: 2, mr: 2 }}
-    >
-      Delete Booking
-    </Button>
-    <Button
-      variant="contained"
-      color="secondary"
-      onClick={() => {
-        setSelectedBooking(null);
-        setSelectedFlat(null);
-      }}
-      sx={{ mt: 2, mr: 2 }}
-    >
-      Close Details
-    </Button>
-  </Paper>
-)}
+      {/* Action buttons */}
+      <Button variant="contained" onClick={() => setIsEditing(true)} sx={{ mt: 2, mr: 2 }}>
+        Edit Booking
+      </Button>
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={() => handleCancelBooking(selectedBooking.id)}
+        sx={{ mt: 2, mr: 2 }}
+      >
+        Cancel Booking
+      </Button>
+      <Button
+        variant="outlined"
+        color="error"
+        onClick={() => handleDeleteBooking(selectedBooking.id)}
+        sx={{ mt: 2, mr: 2 }}
+      >
+        Delete Booking
+      </Button>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={() => {
+          setSelectedBooking(null);
+          setSelectedFlat(null);
+        }}
+        sx={{ mt: 2, mr: 2 }}
+      >
+        Close Details
+      </Button>
+    </Paper>
+  )}
       {/* Edit Booking Form */}
       {isEditing && selectedBooking && (
         <Paper sx={{ mt: 3, p: 3 }}>
@@ -253,7 +282,8 @@ function ManageBookings() {
             </TableRow>
           </TableHead>
       <TableBody>
-        {bookings.map((booking) => (
+        {filteredBookings.length > 0 ? (
+          filteredBookings.map((booking) => (
           <TableRow key={booking.id}>
             <TableCell>{booking.flatId || "N/A"}</TableCell>
             <TableCell>{booking.userEmail || "N/A"}</TableCell>
@@ -285,7 +315,14 @@ function ManageBookings() {
               </Button>
             </TableCell>
           </TableRow>
-        ))}
+        ))
+      ) : (
+        <TableRow>
+                <TableCell colSpan={6} align="center">
+                  No bookings found.
+                </TableCell>
+              </TableRow>
+      )}
       </TableBody>
         </Table>
       </TableContainer>

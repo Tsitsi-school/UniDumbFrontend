@@ -9,6 +9,8 @@ import {
 
 function ManageUsers() {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]); // Stores filtered users
+  const [searchQuery, setSearchQuery] = useState(""); // Search input
   const [editingUser, setEditingUser] = useState(null);
   const [updatedUser, setUpdatedUser] = useState({});
   const navigate = useNavigate();
@@ -18,12 +20,27 @@ function ManageUsers() {
       try {
         const data = await getUsers();
         setUsers(data);
+        setFilteredUsers(data); // Initialize with all users
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     }
     fetchUsers();
   }, []);
+
+  const handleSearchChange = (event) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    // Filter users based on name, email, or role
+    const filtered = users.filter((user) =>
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query) ||
+      user.roles.toLowerCase().includes(query)
+    );
+
+    setFilteredUsers(filtered);
+  };
 
   const handleDeleteUser = async (id) => {
     try {
@@ -42,7 +59,11 @@ function ManageUsers() {
   const handleUpdateUser = async () => {
     try {
       await updateUser(editingUser.id, updatedUser);
-      setUsers(users.map((user) => (user.id === editingUser.id ? updatedUser : user)));
+      const updatedList = users.map((user) =>
+        user.id === editingUser.id ? updatedUser : user
+      );
+      setUsers(updatedList);
+      setFilteredUsers(updatedList);
       setEditingUser(null);
     } catch (error) {
       console.error("Error updating user:", error);
@@ -63,6 +84,16 @@ function ManageUsers() {
       >
         Add New User
       </Button>
+
+      {/* Search Bar */}
+      <TextField
+        label="Search Users"
+        variant="outlined"
+        fullWidth
+        value={searchQuery}
+        onChange={handleSearchChange}
+        sx={{ mb: 3 }}
+      />
 
       {/* Edit User Form */}
       {editingUser && (
@@ -109,26 +140,32 @@ function ManageUsers() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.firstName} {user.lastName}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.roles}</TableCell>
-                <TableCell>
-                  <Button variant="outlined" onClick={() => handleEditUser(user)} sx={{ mr: 1 }}>
-                    Edit
-                  </Button>
-                  <Button variant="outlined" color="error" onClick={() => handleDeleteUser(user.id)}>
-                    Delete
-                  </Button>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.firstName} {user.lastName}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.roles}</TableCell>
+                  <TableCell>
+                    <Button variant="outlined" onClick={() => handleEditUser(user)} sx={{ mr: 1 }}>
+                      Edit
+                    </Button>
+                    <Button variant="outlined" color="error" onClick={() => handleDeleteUser(user.id)}>
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  No users found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
-
-      
     </DashboardLayout>
   );
 }
