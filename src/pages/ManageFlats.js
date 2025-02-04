@@ -1,13 +1,20 @@
-
-
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getFlats, getFlatDetails, updateFlat, deleteFlat, uploadFlatImage, filterFlats} from "../api/flats";
+import { getFlats, getFlatDetails, updateFlat, deleteFlat, uploadFlatImage, filterFlats, deleteFlatImage } from "../api/flats";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Button, TextField, Typography, Select, MenuItem
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  TextField,
+  Typography,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 function ManageFlats() {
@@ -17,26 +24,25 @@ function ManageFlats() {
   const [selectedFiles, setSelectedFiles] = useState([]); // ✅ Store uploaded files
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
-      location: "",
-      minPrice: "",
-      maxPrice: "",
-      roomNumber: "",
-      minDistance: "",
-      maxDistance: ""
+    location: "",
+    minPrice: "",
+    maxPrice: "",
+    roomNumber: "",
+    minDistance: "",
+    maxDistance: "",
   });
 
-
-    useEffect(() => {
-      async function fetchFlats() {
-        try {
-          const data = await getFlats();
-          setFlats(data);
-        } catch (error) {
-          console.error("Error fetching flats:", error);
-        }
+  useEffect(() => {
+    async function fetchFlats() {
+      try {
+        const data = await getFlats();
+        setFlats(data);
+      } catch (error) {
+        console.error("Error fetching flats:", error);
       }
-      fetchFlats();
-    }, []);
+    }
+    fetchFlats();
+  }, []);
 
   const handleSelectFlat = async (id) => {
     try {
@@ -56,7 +62,6 @@ function ManageFlats() {
   const handleUpdateFlat = async () => {
     if (!selectedFlat) return;
     try {
-      
       await updateFlat(selectedFlat.id, selectedFlat, selectedFiles);
       alert("Flat updated successfully");
       setSelectedFlat(null);
@@ -85,25 +90,27 @@ function ManageFlats() {
 
   const applyFilters = async () => {
     try {
-        const data = await filterFlats(filters);
-        setFlats(data);
+      const data = await filterFlats(filters);
+      setFlats(data);
     } catch (error) {
-        console.error("Failed to apply filters");
+      console.error("Failed to apply filters");
     }
-};
-    
+  };
+
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
+  // Helper function: Returns full image URL if necessary
+  const getImageUrl = (img) => {
+    return img.startsWith("http") ? img : `http://localhost:8080/${img}`;
+  };
 
   return (
     <DashboardLayout>
       <Typography variant="h4" sx={{ mb: 2 }}>
         Manage Flats
       </Typography>
-
-      
 
       <Button
         variant="contained"
@@ -114,44 +121,85 @@ function ManageFlats() {
         + Add New Flat
       </Button>
 
-     
-
       {selectedFlat && (
         <Paper sx={{ mt: 3, p: 3 }}>
           <Typography variant="h5">Flat Details</Typography>
           {!isEditing ? (
             <>
-              <p><strong>Name:</strong> {selectedFlat.name}</p>
-              <p><strong>Location:</strong> {selectedFlat.location}</p>
-              <p><strong>Price:</strong> ${selectedFlat.price}</p>
-              <p><strong>Description:</strong> {selectedFlat.description || "No description available"}</p>
-              <p><strong>Distance:</strong> {selectedFlat.distance ? `${selectedFlat.distance} km` : "N/A"}</p>
-              <p><strong>Amenities:</strong> {selectedFlat.amenities?.length ? selectedFlat.amenities.join(", ") : "No amenities listed"}</p>
-              <p><strong>Availability:</strong> {selectedFlat.availability || "Unknown"}</p>
+              <p>
+                <strong>Name:</strong> {selectedFlat.name}
+              </p>
+              <p>
+                <strong>Location:</strong> {selectedFlat.location}
+              </p>
+              <p>
+                <strong>Price:</strong> ${selectedFlat.price}
+              </p>
+              <p>
+                <strong>Description:</strong>{" "}
+                {selectedFlat.description || "No description available"}
+              </p>
+              <p>
+                <strong>Distance:</strong>{" "}
+                {selectedFlat.distance ? `${selectedFlat.distance} km` : "N/A"}
+              </p>
+              <p>
+                <strong>Amenities:</strong>{" "}
+                {selectedFlat.amenities?.length
+                  ? selectedFlat.amenities.join(", ")
+                  : "No amenities listed"}
+              </p>
+              <p>
+                <strong>Availability:</strong>{" "}
+                {selectedFlat.availability || "Unknown"}
+              </p>
 
               {/* Display images if available */}
               {selectedFlat.images?.length > 0 && (
                 <div>
                   <strong>Images:</strong>
-                  <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                  <div style={{ display: "flex", gap: "10px", marginTop: "10px", flexWrap: "wrap" }}>
                     {selectedFlat.images.map((img, index) => (
-                      <img
-                        key={index}
-                        src={`http://localhost:8080/${selectedFlat.images[0]}`}  // ✅ Ensure full URL is used
-                        alt={`Flat ${index}`}
-                        style={{
-                          width: "400px",
-                          height: "400px",
-                          objectFit: "cover",
-                          borderRadius: "5px",
-                        }}
-                      />
+                      <div key={index} style={{ position: "relative" }}>
+                        <img
+                          src={getImageUrl(img)}
+                          alt={`Flat ${index}`}
+                          style={{
+                            width: "400px",
+                            height: "400px",
+                            objectFit: "cover",
+                            borderRadius: "5px",
+                          }}
+                        />
+                        <Button
+                          variant="contained"
+                          color="error"
+                          size="small"
+                          style={{
+                            position: "absolute",
+                            top: "10px",
+                            right: "10px",
+                          }}
+                          onClick={async () => {
+                            try {
+                              // Call the API to delete the image
+                              const updatedFlat = await deleteFlatImage(selectedFlat.id, img);
+                              setSelectedFlat(updatedFlat);
+                              // Optionally, refresh the list of flats if needed
+                              const data = await getFlats();
+                              setFlats(data);
+                            } catch (error) {
+                              console.error("Error deleting image:", error);
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
-
-
               {/* Show Booking Details */}
               {selectedFlat.bookings?.length > 0 ? (
                 <div>
@@ -159,8 +207,13 @@ function ManageFlats() {
                   <ul>
                     {selectedFlat.bookings.map((booking) => (
                       <li key={booking.id}>
-                        <p><strong>User:</strong> {booking.userEmail}</p>
-                        <p><strong>Booking Dates:</strong> {booking.startDate} - {booking.endDate}</p>
+                        <p>
+                          <strong>User:</strong> {booking.userEmail}
+                        </p>
+                        <p>
+                          <strong>Booking Dates:</strong> {booking.startDate} -{" "}
+                          {booking.endDate}
+                        </p>
                       </li>
                     ))}
                   </ul>
@@ -168,16 +221,16 @@ function ManageFlats() {
               ) : (
                 <p>No bookings for this flat.</p>
               )}
+
               {/* Close Details Button */}
-              <Button 
-                variant="contained" 
-                color="secondary" 
-                onClick={() => setSelectedFlat(null)} 
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => setSelectedFlat(null)}
                 sx={{ mt: 2, mr: 2 }}
               >
                 Close Details
               </Button>
-
 
               <Button variant="contained" onClick={handleEditFlat} sx={{ mt: 2 }}>
                 Edit Flat Details
@@ -186,12 +239,14 @@ function ManageFlats() {
           ) : (
             <div>
               <Typography variant="h5">Edit Flat</Typography>
-              
+
               <TextField
                 label="Name"
                 fullWidth
                 value={selectedFlat.name}
-                onChange={(e) => setSelectedFlat({ ...selectedFlat, name: e.target.value })}
+                onChange={(e) =>
+                  setSelectedFlat({ ...selectedFlat, name: e.target.value })
+                }
                 sx={{ mb: 2 }}
               />
 
@@ -199,7 +254,9 @@ function ManageFlats() {
                 label="Location"
                 fullWidth
                 value={selectedFlat.location}
-                onChange={(e) => setSelectedFlat({ ...selectedFlat, location: e.target.value })}
+                onChange={(e) =>
+                  setSelectedFlat({ ...selectedFlat, location: e.target.value })
+                }
                 sx={{ mb: 2 }}
               />
 
@@ -208,7 +265,9 @@ function ManageFlats() {
                 fullWidth
                 type="number"
                 value={selectedFlat.price}
-                onChange={(e) => setSelectedFlat({ ...selectedFlat, price: e.target.value })}
+                onChange={(e) =>
+                  setSelectedFlat({ ...selectedFlat, price: e.target.value })
+                }
                 sx={{ mb: 2 }}
               />
 
@@ -217,7 +276,12 @@ function ManageFlats() {
                 fullWidth
                 multiline
                 value={selectedFlat.description}
-                onChange={(e) => setSelectedFlat({ ...selectedFlat, description: e.target.value })}
+                onChange={(e) =>
+                  setSelectedFlat({
+                    ...selectedFlat,
+                    description: e.target.value,
+                  })
+                }
                 sx={{ mb: 2 }}
               />
 
@@ -226,7 +290,9 @@ function ManageFlats() {
                 fullWidth
                 type="number"
                 value={selectedFlat.distance}
-                onChange={(e) => setSelectedFlat({ ...selectedFlat, distance: e.target.value })}
+                onChange={(e) =>
+                  setSelectedFlat({ ...selectedFlat, distance: e.target.value })
+                }
                 sx={{ mb: 2 }}
               />
 
@@ -234,7 +300,14 @@ function ManageFlats() {
                 label="Amenities (comma-separated)"
                 fullWidth
                 value={selectedFlat.amenities?.join(", ")}
-                onChange={(e) => setSelectedFlat({ ...selectedFlat, amenities: e.target.value.split(",").map(item => item.trim()) })}
+                onChange={(e) =>
+                  setSelectedFlat({
+                    ...selectedFlat,
+                    amenities: e.target.value.split(",").map((item) =>
+                      item.trim()
+                    ),
+                  })
+                }
                 sx={{ mb: 2 }}
               />
 
@@ -247,22 +320,34 @@ function ManageFlats() {
                 style={{ marginTop: "10px" }}
               />
 
-
               <Select
                 label="Availability"
                 fullWidth
                 value={selectedFlat.availability}
-                onChange={(e) => setSelectedFlat({ ...selectedFlat, availability: e.target.value })}
+                onChange={(e) =>
+                  setSelectedFlat({
+                    ...selectedFlat,
+                    availability: e.target.value,
+                  })
+                }
                 sx={{ mb: 2 }}
               >
                 <MenuItem value="Available">Available</MenuItem>
                 <MenuItem value="Not Available">Not Available</MenuItem>
               </Select>
 
-              <Button variant="contained" onClick={handleUpdateFlat} sx={{ mt: 2, mr: 2 }}>
+              <Button
+                variant="contained"
+                onClick={handleUpdateFlat}
+                sx={{ mt: 2, mr: 2 }}
+              >
                 Update Flat
               </Button>
-              <Button variant="outlined" color="error" onClick={() => setIsEditing(false)}>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setIsEditing(false)}
+              >
                 Cancel
               </Button>
             </div>
@@ -273,28 +358,81 @@ function ManageFlats() {
       {/* 🔽 FILTER SECTION STARTS HERE */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Typography variant="h6">Filter Flats</Typography>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
-          <TextField label="Location" name="location" value={filters.location} onChange={handleChange} />
-          <TextField label="Min Price" type="number" name="minPrice" value={filters.minPrice} onChange={handleChange} />
-          <TextField label="Max Price" type="number" name="maxPrice" value={filters.maxPrice} onChange={handleChange} />
-          <TextField label="Rooms" type="number" name="roomNumber" value={filters.roomNumber} onChange={handleChange} />
-          <TextField label="Min Distance (km)" type="number" name="minDistance" value={filters.minDistance} onChange={handleChange} />
-          <TextField label="Max Distance (km)" type="number" name="maxDistance" value={filters.maxDistance} onChange={handleChange} />
-          <Button variant="contained" color="primary" onClick={applyFilters}>Apply Filters</Button>
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginTop: "10px",
+          }}
+        >
+          <TextField
+            label="Location"
+            name="location"
+            value={filters.location}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Min Price"
+            type="number"
+            name="minPrice"
+            value={filters.minPrice}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Max Price"
+            type="number"
+            name="maxPrice"
+            value={filters.maxPrice}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Rooms"
+            type="number"
+            name="roomNumber"
+            value={filters.roomNumber}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Min Distance (km)"
+            type="number"
+            name="minDistance"
+            value={filters.minDistance}
+            onChange={handleChange}
+          />
+          <TextField
+            label="Max Distance (km)"
+            type="number"
+            name="maxDistance"
+            value={filters.maxDistance}
+            onChange={handleChange}
+          />
+          <Button variant="contained" color="primary" onClick={applyFilters}>
+            Apply Filters
+          </Button>
         </div>
       </Paper>
       {/* 🔼 FILTER SECTION ENDS HERE */}
-
 
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell><strong>Image</strong></TableCell> 
-              <TableCell><strong>Name</strong></TableCell>
-              <TableCell><strong>Location</strong></TableCell>
-              <TableCell><strong>Price</strong></TableCell>
-              <TableCell><strong>Actions</strong></TableCell>
+              <TableCell>
+                <strong>Image</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Name</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Location</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Price</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Actions</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -303,26 +441,35 @@ function ManageFlats() {
                 <TableCell>
                   {flat.images?.length > 0 ? (
                     <img
-                      src={`http://localhost:8080/${flat.images[0]}`}  // ✅ Ensure full URL is used
+                      src={getImageUrl(flat.images[0])}
                       alt="Flat"
                       style={{
-                        width: "200px",  // Reduced size for table
+                        width: "200px", // Reduced size for table
                         height: "200px",
                         objectFit: "cover",
                         borderRadius: "5px",
                       }}
                     />
-                  ) : "No Image"}
+                  ) : (
+                    "No Image"
+                  )}
                 </TableCell>
-
                 <TableCell>{flat.name}</TableCell>
                 <TableCell>{flat.location}</TableCell>
                 <TableCell>${flat.price}</TableCell>
                 <TableCell>
-                  <Button variant="outlined" onClick={() => handleSelectFlat(flat.id)} sx={{ mr: 1 }}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => handleSelectFlat(flat.id)}
+                    sx={{ mr: 1 }}
+                  >
                     View
                   </Button>
-                  <Button variant="outlined" color="error" onClick={() => handleDeleteFlat(flat.id)}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDeleteFlat(flat.id)}
+                  >
                     Delete
                   </Button>
                 </TableCell>
@@ -331,9 +478,6 @@ function ManageFlats() {
           </TableBody>
         </Table>
       </TableContainer>
-
-
-     
     </DashboardLayout>
   );
 }

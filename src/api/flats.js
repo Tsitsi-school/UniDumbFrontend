@@ -25,17 +25,30 @@ export const getFlatDetails = async (id) => {
   };
   
 
+export const deleteFlatImage = async (flatId, imageUrl) => {
+  try {
+    // Pass the imageUrl as a query parameter (encode it for safety)
+    const response = await axios.delete(`${API_BASE_URL}/${flatId}/images`, {
+      params: { imageUrl: imageUrl }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting flat image:", error);
+    throw error;
+  }
+};
+
 export const addFlat = async (flatData, files) => {
   try {
     const formData = new FormData();
 
-    // ✅ Convert flat data to JSON and append as Blob
+    // Convert flat data to JSON and append as Blob under the key "flat"
     formData.append("flat", new Blob([JSON.stringify(flatData)], { type: "application/json" }));
 
-    // ✅ Append image files
+    // Append image files under the key "files"
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i]); // ✅ Multiple images
+        formData.append("files", files[i]); // Multiple images
       }
     }
 
@@ -50,7 +63,6 @@ export const addFlat = async (flatData, files) => {
     throw error;
   }
 };
-
 
 export const updateFlat = async (id, flatData, files = []) => {
   try {

@@ -52,6 +52,15 @@ export const deleteBooking = async (id) => {
   }
 };
 
+export const cancelBooking = async (id) => {
+  try {
+    await axios.post(`${API_BASE_URL}/bookings/${id}/cancel`);
+  } catch (error) {
+    console.error('Error canceling booking:', error);
+    throw error;
+  }
+};
+
 export const getActiveBookingsByUserEmail = async (userEmail) => {
   try {
       const response = await axios.get(`${API_BASE_URL}/active`, {
