@@ -1,3 +1,4 @@
+
 import React from "react";
 import { AppBar, Box, CssBaseline, Drawer, Toolbar, Typography, List, ListItem, ListItemText } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -30,6 +31,9 @@ export default function DashboardLayout({ children }) {
       >
         <Toolbar />
         <List>
+          <ListItem button component={Link} to="/admin">
+              <ListItemText primary="Dashboard" />
+          </ListItem>
           <ListItem button component={Link} to="/admin/manage-flats">
             <ListItemText primary="Manage Flats" />
           </ListItem>

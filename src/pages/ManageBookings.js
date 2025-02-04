@@ -90,7 +90,7 @@ function ManageBookings() {
         <Paper sx={{ mt: 3, p: 3 }}>
           <Typography variant="h5">Booking Details</Typography>
           <p><strong>Booking ID:</strong> {selectedBooking.id}</p>
-          <p><strong>User:</strong> {selectedBooking.userName} ({selectedBooking.userEmail})</p>
+          <p><strong>User:</strong> {selectedBooking.userEmail}</p>
           <p><strong>Start Date:</strong> {selectedBooking.startDate}</p>
           <p><strong>End Date:</strong> {selectedBooking.endDate}</p>
           <p><strong>Status:</strong> {selectedBooking.status}</p>
@@ -130,9 +130,19 @@ function ManageBookings() {
           <Button variant="contained" onClick={() => setIsEditing(true)} sx={{ mt: 2, mr: 2 }}>
             Edit Booking
           </Button>
-          <Button variant="outlined" color="error" onClick={() => handleDeleteBooking(selectedBooking.id)}>
+          <Button variant="outlined" color="error" onClick={() => handleDeleteBooking(selectedBooking.id)} sx={{ mt: 2, mr: 2 }}>
             DELETE Booking
           </Button>
+          {/* Close Details Button */}
+            <Button 
+              variant="contained" 
+              color="secondary" 
+              onClick={() => setSelectedFlat(null)} 
+              sx={{ mt: 2, mr: 2 }}
+            >
+              Close Details
+            </Button>
+          
         </Paper>
       )}
 
@@ -170,7 +180,6 @@ function ManageBookings() {
           >
             <MenuItem value="ACTIVE">Active</MenuItem>
             <MenuItem value="CANCELED">Canceled</MenuItem>
-            <MenuItem value="COMPLETED">Completed</MenuItem>
           </Select>
 
           <Button variant="contained" onClick={handleUpdateBooking} sx={{ mr: 2 }}>

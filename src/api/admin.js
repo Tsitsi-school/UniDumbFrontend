@@ -1,71 +1,38 @@
-// import axios from 'axios';
-// import API_BASE_URL from './config';
+import axios from "axios";
 
-// const axiosInstance = axios.create({
-//   baseURL: API_BASE_URL,
-// });
+const API_BASE_URL = "http://localhost:8080/api/dashboard";
 
-// axiosInstance.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem('token');
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error)
-// );
+const DashboardAPI = {
+    getStats: async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/stats`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching dashboard stats:", error);
+            throw error;
+        }
+    },
 
-// // API for Flats Management
-// export const getFlats = async () => {
-//   return axiosInstance.get('/flats');
-// };
+    getRecentActivities: async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/recent-activities`); // Adjust the endpoint as needed
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching recent activities:", error);
+            return [];
+        }
+    },
 
-// export const addFlat = async (flatData) => {
-//   return axiosInstance.post('/flats', flatData);
-// };
+    getMostActiveUser: async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/most-active-user`); // Adjust the endpoint as needed
+            console.log(response.data);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching most active user:", error);
+            return null; // Return null to avoid UI crashes
+        }
+    }
+};
 
-// export const updateFlat = async (id, flatData) => {
-//   return axiosInstance.put(`/flats/${id}`, flatData);
-// };
-
-// export const deleteFlat = async (id) => {
-//   return axiosInstance.delete(`/flats/${id}`);
-// };
-
-// // API for Users Management
-// export const getUsers = async () => {
-//   return axiosInstance.get('/users');
-// };
-
-// export const deleteUser = async (id) => {
-//   return axiosInstance.delete(`/users/${id}`);
-// };
-
-// // API for Bookings Management
-// export const getBookings = async () => {
-//   return axiosInstance.get('/bookings');
-// };
-
-// export const cancelBooking = async (id) => {
-//   return axiosInstance.delete(`/bookings/${id}`);
-// };
-
-// // API for Image Management
-// export const getFlatImages = async (flatId) => {
-//   return axiosInstance.get(`/flats/${flatId}/images`);
-// };
-
-// export const uploadFlatImage = async (flatId, imageFile) => {
-//   const formData = new FormData();
-//   formData.append('image', imageFile);
-//   return axiosInstance.post(`/flats/${flatId}/upload-image`, formData, {
-//     headers: { 'Content-Type': 'multipart/form-data' }
-//   });
-// };
-
-// export const deleteFlatImage = async (flatId, imageId) => {
-//   return axiosInstance.delete(`/flats/${flatId}/images/${imageId}`);
-// };
-
-// export default axiosInstance;
+export default DashboardAPI;

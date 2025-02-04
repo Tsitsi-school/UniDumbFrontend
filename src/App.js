@@ -13,7 +13,7 @@ import DashboardLayout from './components/Dashboard/DashboardLayout';
 function App() {
   return (
     <Routes>
-      <Route path="/admin" element={<DashboardLayout />} />
+      <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/admin/manage-flats" element={<ManageFlats />} />
       <Route path="/admin/add-flat" element={<AddFlat />} />
       <Route path="/admin/manage-users" element={<ManageUsers />} />
