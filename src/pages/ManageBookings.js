@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getBookings, getBookingDetails, updateBooking, cancelBooking } from "../api/bookings";
+import { getBookings, getBookingDetails, updateBooking, cancelBooking, deleteBooking } from "../api/bookings";
+import { getFlatDetails } from "../api/flats";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -10,6 +11,7 @@ import {
 function ManageBookings() {
   const [bookings, setBookings] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedFlat, setSelectedFlat] = useState(null); // Stores the clicked flat's details
   const [updatedBooking, setUpdatedBooking] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
@@ -29,8 +31,15 @@ function ManageBookings() {
   const handleSelectBooking = async (id) => {
     try {
       const bookingDetails = await getBookingDetails(id);
+      console.log(bookingDetails);
       setSelectedBooking(bookingDetails);
       setUpdatedBooking({ ...bookingDetails });
+
+      if (bookingDetails.flatId) {
+        const flatDetails = await getFlatDetails(bookingDetails.flatId);
+        setSelectedFlat(flatDetails);
+      }
+
       setIsEditing(false);
     } catch (error) {
       console.error("Error fetching booking details:", error);
@@ -50,10 +59,11 @@ function ManageBookings() {
     }
   };
 
-  const handleCancelBooking = async (id) => {
+
+  const handleDeleteBooking = async (id) => {
     try {
-      await cancelBooking(id);
-      alert("Booking canceled successfully");
+      await deleteBooking(id);
+      alert("Booking deleted successfully");
       setBookings(bookings.filter((booking) => booking.id !== id));
     } catch (error) {
       console.error("Error canceling booking:", error);
@@ -75,58 +85,53 @@ function ManageBookings() {
         + Add New Booking
       </Button>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell><strong>Flat</strong></TableCell>
-              <TableCell><strong>User</strong></TableCell>
-              <TableCell><strong>Start Date</strong></TableCell>
-              <TableCell><strong>End Date</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
-              <TableCell><strong>Actions</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {bookings.map((booking) => (
-              <TableRow key={booking.id}>
-                <TableCell>{booking.flatName || "N/A"}</TableCell>
-                <TableCell>{booking.userName || "N/A"}</TableCell>
-                <TableCell>{booking.startDate}</TableCell>
-                <TableCell>{booking.endDate}</TableCell>
-                <TableCell>{booking.status}</TableCell>
-                <TableCell>
-                  <Button variant="outlined" onClick={() => handleSelectBooking(booking.id)} sx={{ mr: 1 }}>
-                    View
-                  </Button>
-                  <Button variant="outlined" color="error" onClick={() => handleCancelBooking(booking.id)}>
-                    Cancel
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
       {/* Booking Details */}
       {selectedBooking && (
         <Paper sx={{ mt: 3, p: 3 }}>
           <Typography variant="h5">Booking Details</Typography>
           <p><strong>Booking ID:</strong> {selectedBooking.id}</p>
           <p><strong>User:</strong> {selectedBooking.userName} ({selectedBooking.userEmail})</p>
-          <p><strong>Flat:</strong> {selectedBooking.flatName} ({selectedBooking.flatLocation})</p>
-          <p><strong>Price:</strong> ${selectedBooking.flatPrice}</p>
           <p><strong>Start Date:</strong> {selectedBooking.startDate}</p>
           <p><strong>End Date:</strong> {selectedBooking.endDate}</p>
           <p><strong>Status:</strong> {selectedBooking.status}</p>
-          <p><strong>System:</strong> {selectedBooking.system}</p>
+
+          {selectedFlat && (
+            <>
+              <Typography variant="h5" sx={{ mt: 2 }}>Apartment Details</Typography>
+              <p><strong>Name:</strong> {selectedFlat.name}</p>
+              <p><strong>Location:</strong> {selectedFlat.location}</p>
+              <p><strong>Price:</strong> ${selectedFlat.price}</p>
+              <p><strong>Availability:</strong> {selectedFlat.availability || "Unknown"}</p>
+
+              {/* Display images if available */}
+              {selectedFlat.images?.length > 0 && (
+                <div>
+                  <strong>Images:</strong>
+                  <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                    {selectedFlat.images.map((img, index) => (
+                      <img
+                        key={index}
+                        src={`http://localhost:8080/${img}`}  
+                        alt={`Flat ${index}`}
+                        style={{
+                          width: "400px",
+                          height: "400px",
+                          objectFit: "cover",
+                          borderRadius: "5px",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
           <Button variant="contained" onClick={() => setIsEditing(true)} sx={{ mt: 2, mr: 2 }}>
             Edit Booking
           </Button>
-          <Button variant="outlined" color="error" onClick={() => handleCancelBooking(selectedBooking.id)}>
-            Cancel Booking
+          <Button variant="outlined" color="error" onClick={() => handleDeleteBooking(selectedBooking.id)}>
+            DELETE Booking
           </Button>
         </Paper>
       )}
@@ -176,6 +181,42 @@ function ManageBookings() {
           </Button>
         </Paper>
       )}
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell><strong>Flat ID</strong></TableCell>
+              <TableCell><strong>User</strong></TableCell>
+              <TableCell><strong>Start Date</strong></TableCell>
+              <TableCell><strong>End Date</strong></TableCell>
+              <TableCell><strong>Status</strong></TableCell>
+              <TableCell><strong>Actions</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {bookings.map((booking) => (
+              <TableRow key={booking.id}>
+                <TableCell>{booking.flatId || "N/A"}</TableCell>
+                <TableCell>{booking.userEmail || "N/A"}</TableCell>
+                <TableCell>{booking.startDate}</TableCell>
+                <TableCell>{booking.endDate}</TableCell>
+                <TableCell>{booking.status}</TableCell>
+                <TableCell>
+                  <Button variant="outlined" onClick={() => handleSelectBooking(booking.id)} sx={{ mr: 1 }}>
+                    View
+                  </Button>
+                  <Button variant="outlined" color="error" onClick={() => handleDeleteBooking(booking.id)}>
+                    Cancel
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      
     </DashboardLayout>
   );
 }

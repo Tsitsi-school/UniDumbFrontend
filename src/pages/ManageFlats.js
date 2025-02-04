@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getFlats, getFlatDetails, updateFlat, deleteFlat, uploadFlatImage} from "../api/flats";
+import { getFlats, getFlatDetails, updateFlat, deleteFlat, uploadFlatImage, filterFlats} from "../api/flats";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -14,19 +14,17 @@ function ManageFlats() {
   const [flats, setFlats] = useState([]);
   const [selectedFlat, setSelectedFlat] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]); // ✅ Store uploaded files
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+      location: "",
+      minPrice: "",
+      maxPrice: "",
+      roomNumber: "",
+      minDistance: "",
+      maxDistance: ""
+  });
 
-  // useEffect(() => {
-  //   async function fetchFlats() {
-  //     try {
-  //       const data = await getFlats();
-  //       setFlats(data);
-  //     } catch (error) {
-  //       console.error("Error fetching flats:", error);
-  //     }
-  //   }
-  //   fetchFlats();
-  // }, []);
 
     useEffect(() => {
       async function fetchFlats() {
@@ -58,7 +56,8 @@ function ManageFlats() {
   const handleUpdateFlat = async () => {
     if (!selectedFlat) return;
     try {
-      await updateFlat(selectedFlat.id, selectedFlat);
+      
+      await updateFlat(selectedFlat.id, selectedFlat, selectedFiles);
       alert("Flat updated successfully");
       setSelectedFlat(null);
       setIsEditing(false);
@@ -79,21 +78,22 @@ function ManageFlats() {
     }
   };
 
-  const handleImageUpload = async (flatId, event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-  
-    const formData = new FormData();
-    formData.append("image", file);
-  
+  const handleImageUpload = (event) => {
+    const files = Array.from(event.target.files); // ✅ Convert FileList to array
+    setSelectedFiles(files); // ✅ Store selected files
+  };
+
+  const applyFilters = async () => {
     try {
-      await uploadFlatImage(flatId, formData); // Use the API function
-  
-      alert("Image uploaded successfully!");
-      window.location.reload(); // Refresh the page to reflect new images
+        const data = await filterFlats(filters);
+        setFlats(data);
     } catch (error) {
-      console.error("Error uploading image:", error);
+        console.error("Failed to apply filters");
     }
+};
+    
+  const handleChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
 
@@ -102,6 +102,8 @@ function ManageFlats() {
       <Typography variant="h4" sx={{ mb: 2 }}>
         Manage Flats
       </Typography>
+
+      
 
       <Button
         variant="contained"
@@ -112,51 +114,7 @@ function ManageFlats() {
         + Add New Flat
       </Button>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell><strong>Image</strong></TableCell> 
-              <TableCell><strong>Name</strong></TableCell>
-              <TableCell><strong>Location</strong></TableCell>
-              <TableCell><strong>Price</strong></TableCell>
-              <TableCell><strong>Actions</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {flats.map((flat) => (
-              <TableRow key={flat.id}>
-                 <TableCell>
-                    {flat.images?.length > 0 ? (
-                      <img
-                        src={flat.images[0].imageUrl} // Use the direct URL provided by the backend
-                        alt="Flat"
-                        style={{
-                          width: "300px",
-                          height: "300px",
-                          objectFit: "cover",
-                          borderRadius: "5px",
-                        }}
-                      />
-                    ) : "No Image"}
-                  </TableCell>
-
-                <TableCell>{flat.name}</TableCell>
-                <TableCell>{flat.location}</TableCell>
-                <TableCell>${flat.price}</TableCell>
-                <TableCell>
-                  <Button variant="outlined" onClick={() => handleSelectFlat(flat.id)} sx={{ mr: 1 }}>
-                    View
-                  </Button>
-                  <Button variant="outlined" color="error" onClick={() => handleDeleteFlat(flat.id)}>
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+     
 
       {selectedFlat && (
         <Paper sx={{ mt: 3, p: 3 }}>
@@ -179,7 +137,7 @@ function ManageFlats() {
                     {selectedFlat.images.map((img, index) => (
                       <img
                         key={index}
-                        src={img.imageUrl} // 🔥 Ensure you're accessing `imageUrl`
+                        src={`http://localhost:8080/${selectedFlat.images[0]}`}  // ✅ Ensure full URL is used
                         alt={`Flat ${index}`}
                         style={{
                           width: "400px",
@@ -210,6 +168,16 @@ function ManageFlats() {
               ) : (
                 <p>No bookings for this flat.</p>
               )}
+              {/* Close Details Button */}
+              <Button 
+                variant="contained" 
+                color="secondary" 
+                onClick={() => setSelectedFlat(null)} 
+                sx={{ mt: 2, mr: 2 }}
+              >
+                Close Details
+              </Button>
+
 
               <Button variant="contained" onClick={handleEditFlat} sx={{ mt: 2 }}>
                 Edit Flat Details
@@ -270,6 +238,16 @@ function ManageFlats() {
                 sx={{ mb: 2 }}
               />
 
+              {/* Image Upload Field */}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                style={{ marginTop: "10px" }}
+              />
+
+
               <Select
                 label="Availability"
                 fullWidth
@@ -291,6 +269,71 @@ function ManageFlats() {
           )}
         </Paper>
       )}
+
+      {/* 🔽 FILTER SECTION STARTS HERE */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Typography variant="h6">Filter Flats</Typography>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
+          <TextField label="Location" name="location" value={filters.location} onChange={handleChange} />
+          <TextField label="Min Price" type="number" name="minPrice" value={filters.minPrice} onChange={handleChange} />
+          <TextField label="Max Price" type="number" name="maxPrice" value={filters.maxPrice} onChange={handleChange} />
+          <TextField label="Rooms" type="number" name="roomNumber" value={filters.roomNumber} onChange={handleChange} />
+          <TextField label="Min Distance (km)" type="number" name="minDistance" value={filters.minDistance} onChange={handleChange} />
+          <TextField label="Max Distance (km)" type="number" name="maxDistance" value={filters.maxDistance} onChange={handleChange} />
+          <Button variant="contained" color="primary" onClick={applyFilters}>Apply Filters</Button>
+        </div>
+      </Paper>
+      {/* 🔼 FILTER SECTION ENDS HERE */}
+
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell><strong>Image</strong></TableCell> 
+              <TableCell><strong>Name</strong></TableCell>
+              <TableCell><strong>Location</strong></TableCell>
+              <TableCell><strong>Price</strong></TableCell>
+              <TableCell><strong>Actions</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {flats.map((flat) => (
+              <TableRow key={flat.id}>
+                <TableCell>
+                  {flat.images?.length > 0 ? (
+                    <img
+                      src={`http://localhost:8080/${flat.images[0]}`}  // ✅ Ensure full URL is used
+                      alt="Flat"
+                      style={{
+                        width: "200px",  // Reduced size for table
+                        height: "200px",
+                        objectFit: "cover",
+                        borderRadius: "5px",
+                      }}
+                    />
+                  ) : "No Image"}
+                </TableCell>
+
+                <TableCell>{flat.name}</TableCell>
+                <TableCell>{flat.location}</TableCell>
+                <TableCell>${flat.price}</TableCell>
+                <TableCell>
+                  <Button variant="outlined" onClick={() => handleSelectFlat(flat.id)} sx={{ mr: 1 }}>
+                    View
+                  </Button>
+                  <Button variant="outlined" color="error" onClick={() => handleDeleteFlat(flat.id)}>
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+
+     
     </DashboardLayout>
   );
 }

@@ -1,30 +1,22 @@
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:8080/api"; // Change this to match backend URL
+const API_BASE_URL = "http://localhost:8080/api/flats"; // Change this to match backend URL
 
 
 export const getFlats = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/flats`);
+    const response = await axios.get(`${API_BASE_URL}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching flats:', error);
-    return [];
+    throw new Error("Could not fetch flats"); // ✅ Improved error handling
   }
 };
-
-// export const getFlats = async () => {
-//   const response = await axios.get(`/api/flats`);
-//   return response.data.map(flat => ({
-//     ...flat,
-//     images: flat.images?.map(img => img.imageUrl) || [], // Ensure images array
-//   }));
-// };
 
 
 export const getFlatDetails = async (id) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/flats/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching flat details:', error);
@@ -32,51 +24,68 @@ export const getFlatDetails = async (id) => {
     }
   };
   
-export const addFlat = async (flatData) => {
+
+export const addFlat = async (flatData, files) => {
   try {
-    const response = await axios.post(
-      `${API_BASE_URL}/flats`,
-       flatData,
-       {
-          headers: {
-            'Content-Type': 'application/json', // Explicitly set the content type
-          },
-       }
-      );
+    const formData = new FormData();
+
+    // ✅ Convert flat data to JSON and append as Blob
+    formData.append("flat", new Blob([JSON.stringify(flatData)], { type: "application/json" }));
+
+    // ✅ Append image files
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]); // ✅ Multiple images
+      }
+    }
+
+    const response = await axios.post(`${API_BASE_URL}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    console.log("Flat created response:", response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching flats:', error);
-    return [];
+    console.error("Error adding flat:", error);
+    throw error;
   }
 };
 
-export const updateFlat = async (id, flatData) => {
+
+export const updateFlat = async (id, flatData, files = []) => {
   try {
-    const response = await axios.put(
-      `${API_BASE_URL}/flats/${id}`, 
-      flatData    );
+    const formData = new FormData();
+    formData.append("flat", new Blob([JSON.stringify(flatData)], { type: "application/json" }));
+
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]); // ✅ Append multiple images
+      }
+    }
+
+    const response = await axios.put(`${API_BASE_URL}/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
     return response.data;
   } catch (error) {
-    console.error('Error updating flat:', error);
+    console.error("Error updating flat:", error);
     return null;
   }
 };
 
 
-
 export const deleteFlat = async (id) => {
   try {
-    const response = await axios.put(`${API_BASE_URL}/flats/${id}`);
-    return response.data;
+    await axios.delete(`${API_BASE_URL}/${id}`);
   } catch (error) {
     console.error('Error fetching flats:', error);
-    return [];
   }
 };
 
 export const uploadFlatImage = async (flatId, formData) => {
   try {
-    await axios.post(`${API_BASE_URL}/flats/${flatId}/upload-image`, formData, {
+    await axios.post(`${API_BASE_URL}/${flatId}/upload-image`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   } catch (error) {
@@ -88,4 +97,15 @@ export const uploadFlatImage = async (flatId, formData) => {
 export const getFlatImages = async (flatId) => {
   const response = await axios.get(`${API_BASE_URL}/${flatId}/images`);
   return response.data;
+};
+
+
+export const filterFlats = async (filters) => {
+  try {
+      const response = await axios.get(`${API_BASE_URL}/filter`, { params: filters });
+      return response.data;
+  } catch (error) {
+      console.error("Error filtering flats:", error);
+      throw error;
+  }
 };

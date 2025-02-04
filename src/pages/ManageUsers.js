@@ -64,36 +64,6 @@ function ManageUsers() {
         Add New User
       </Button>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell><strong>Name</strong></TableCell>
-              <TableCell><strong>Email</strong></TableCell>
-              <TableCell><strong>Role</strong></TableCell>
-              <TableCell><strong>Actions</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.firstName} {user.lastName}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.roles}</TableCell>
-                <TableCell>
-                  <Button variant="outlined" onClick={() => handleEditUser(user)} sx={{ mr: 1 }}>
-                    Edit
-                  </Button>
-                  <Button variant="outlined" color="error" onClick={() => handleDeleteUser(user.id)}>
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
       {/* Edit User Form */}
       {editingUser && (
         <Paper sx={{ mt: 3, p: 3 }}>
@@ -127,6 +97,38 @@ function ManageUsers() {
           </Button>
         </Paper>
       )}
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell><strong>Name</strong></TableCell>
+              <TableCell><strong>Email</strong></TableCell>
+              <TableCell><strong>Role</strong></TableCell>
+              <TableCell><strong>Actions</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.firstName} {user.lastName}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.roles}</TableCell>
+                <TableCell>
+                  <Button variant="outlined" onClick={() => handleEditUser(user)} sx={{ mr: 1 }}>
+                    Edit
+                  </Button>
+                  <Button variant="outlined" color="error" onClick={() => handleDeleteUser(user.id)}>
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      
     </DashboardLayout>
   );
 }

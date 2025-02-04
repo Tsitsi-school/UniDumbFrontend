@@ -24,7 +24,9 @@ export const getBookingDetails = async (id) => {
 
 export const createBooking = async (bookingData) => {
   try {
+    console.log(bookingData);
     const response = await axios.post(`${API_BASE_URL}/bookings`, bookingData);
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error creating booking:", error);
@@ -42,10 +44,22 @@ export const updateBooking = async (id, bookingData) => {
   }
 };
 
-export const cancelBooking = async (id) => {
+export const deleteBooking = async (id) => {
   try {
     await axios.delete(`${API_BASE_URL}/bookings/${id}`);
   } catch (error) {
     console.error('Error canceling booking:', error);
+  }
+};
+
+export const getActiveBookingsByUserEmail = async (userEmail) => {
+  try {
+      const response = await axios.get(`${API_BASE_URL}/active`, {
+          params: { userEmail }
+      });
+      return response.data;
+  } catch (error) {
+      console.error("Error fetching active bookings:", error);
+      throw error;
   }
 };
