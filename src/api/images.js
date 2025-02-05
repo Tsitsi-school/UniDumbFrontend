@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_BASE_URL = "http://localhost:8080/api"; // Change this to match backend URL
+import { API_BASE_URL } from '../constants';
 
 
 export const getFlatImages = async (flatId) => {
