@@ -32,6 +32,8 @@ function ManageBookings() {
   const [searchQuery, setSearchQuery] = useState(""); // Search input
   const [updatedBooking, setUpdatedBooking] = useState({});
   const [isEditing, setIsEditing] = useState(false);
+  const [sortField, setSortField] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,6 +64,50 @@ function ManageBookings() {
 
     setFilteredBookings(filtered);
   };
+
+  useEffect(() => {
+    let updatedBookings = [...bookings];
+
+    // Apply sorting if a field is selected
+    if (sortField) {
+      updatedBookings.sort((a, b) => {
+        let valA = a[sortField] ?? "";
+        let valB = b[sortField] ?? "";
+
+        // Convert dates to timestamps for correct sorting
+        if (sortField === "startDate" || sortField === "endDate") {
+          valA = new Date(valA).getTime();
+          valB = new Date(valB).getTime();
+        }
+
+        return sortOrder === "asc" ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+      });
+    }
+
+    // Update state
+    setFilteredBookings(updatedBookings);
+  }, [bookings, sortField, sortOrder]);
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+  };
+
+  const sortedBookings = [...bookings].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let valA = a[sortField] ?? ""; // Ensure non-null values
+    let valB = b[sortField] ?? "";
+
+    // Convert dates to timestamps for correct sorting
+    if (sortField === "startDate" || sortField === "endDate") {
+      valA = new Date(valA).getTime();
+      valB = new Date(valB).getTime();
+    }
+
+    return sortOrder === "asc" ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+  });
 
   const handleSelectBooking = async (id) => {
     try {
@@ -273,12 +319,34 @@ function ManageBookings() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell><strong>Flat ID</strong></TableCell>
-              <TableCell><strong>User</strong></TableCell>
-              <TableCell><strong>Start Date</strong></TableCell>
-              <TableCell><strong>End Date</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
-              <TableCell><strong>Actions</strong></TableCell>
+              <TableCell>
+                <Button onClick={() => handleSort("flatId")} variant="text">
+                  <strong>Flat ID {sortField === "flatId" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</strong>
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button onClick={() => handleSort("userEmail")} variant="text">
+                  <strong>User {sortField === "userEmail" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</strong>
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button onClick={() => handleSort("startDate")} variant="text">
+                  <strong>Start Date {sortField === "startDate" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</strong>
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button onClick={() => handleSort("endDate")} variant="text">
+                  <strong>End Date {sortField === "endDate" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</strong>
+                </Button>
+              </TableCell>
+              <TableCell>
+                <Button onClick={() => handleSort("status")} variant="text">
+                  <strong>Status {sortField === "status" ? (sortOrder === "asc" ? "↑" : "↓") : ""}</strong>
+                </Button>
+              </TableCell>
+              <TableCell>
+                <strong>Actions</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
       <TableBody>

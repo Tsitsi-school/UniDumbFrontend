@@ -10,7 +10,7 @@ import EventNoteIcon from "@mui/icons-material/EventNote";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 const drawerWidth = 240;
-const leftSpace = 100;
+const leftSpace = 10;
 
 export default function DashboardLayout({ children }) {
   return (

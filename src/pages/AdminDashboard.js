@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Grid, Box, List, ListItem,IconButton, ListItemText, Button, Alert, Avatar, CardHeader } from "@mui/material";
+import { Card, CardContent, Typography, Grid, Box,Paper, List, ListItem,IconButton, ListItemText, Button, Alert, Avatar, CardHeader } from "@mui/material";
 import DashboardAPI from "../api/admin";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
@@ -64,32 +64,45 @@ const RecentActivitiesCarousel = () => {
     };
 
     return (
-        <Card sx={{ p: 2, boxShadow: 3, borderRadius: 2, textAlign: "center", maxWidth: 500, mx: "auto" }}>
+        <Card sx={{ p: 3, boxShadow: 3, borderRadius: 2, maxWidth: 700, mx: "auto", textAlign: "center" }}>
             <CardContent>
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                    Recent Activities
-                </Typography>
+                {/* Enlarged Title */}
 
                 {activities.length > 0 ? (
-                    <Box sx={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", height: "250px", overflow: "hidden" }}>
+                    <Box
+                        sx={{
+                            position: "relative",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "350px",
+                            overflow: "hidden",
+                        }}
+                    >
                         {/* Left Arrow */}
-                        <IconButton onClick={handlePrev} sx={{ position: "absolute", left: 0, zIndex: 1 }}>
+                        <IconButton onClick={handlePrev} sx={{ position: "absolute", left: 10, zIndex: 1 }}>
                             <ArrowBackIos />
                         </IconButton>
 
                         {/* Activity Slide */}
-                        <Box sx={{ textAlign: "center" }}>
+                        <Box sx={{ textAlign: "center", width: "100%" }}>
                             {/* Display Image */}
                             {activities[currentIndex].images?.length > 0 && (
                                 <img
-                                    src={`${activities[currentIndex].images[0]}`}  
-                                    alt="Flat"
-                                    style={{ width: "100%", height: "200px", objectFit: "fill", borderRadius: "8px" }}
+                                    src={activities[currentIndex].images[0]}
+                                    alt="Activity"
+                                    style={{
+                                        width: "100%",
+                                        height: "260px",
+                                        objectFit: "cover",
+                                        borderRadius: "12px",
+                                    }}
                                 />
                             )}
 
                             {/* Activity Description */}
-                            <Typography variant="body1" fontWeight={500} sx={{ mt: 1 }}>
+                            <Typography variant="body1" fontWeight={600} sx={{ mt: 1 }}>
                                 {activities[currentIndex].description}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
@@ -98,7 +111,7 @@ const RecentActivitiesCarousel = () => {
                         </Box>
 
                         {/* Right Arrow */}
-                        <IconButton onClick={handleNext} sx={{ position: "absolute", right: 0, zIndex: 1 }}>
+                        <IconButton onClick={handleNext} sx={{ position: "absolute", right: 10, zIndex: 1 }}>
                             <ArrowForwardIos />
                         </IconButton>
                     </Box>
@@ -176,27 +189,50 @@ const AdminDashboard = () => {
 
     return (
         <DashboardLayout>
-            <Typography variant="h4" fontWeight={700} gutterBottom>
-                Admin Dashboard
-            </Typography>
+        
             <Typography variant="subtitle1" color="text.secondary" gutterBottom>
                 Overview of key metrics and activities.
             </Typography>
             <Alert severity="warning" sx={{ mb: 3 }}>
                 5 Flats are currently unavailable due to maintenance.
             </Alert>
-            <Box sx={{ p: 3 }}>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} md={4}><StatCard title="Total Flats" value={stats.totalFlats} /></Grid>
-                    <Grid item xs={12} md={4}><StatCard title="Total Users" value={stats.totalUsers} /></Grid>
-                    <Grid item xs={12} md={4}><StatCard title="Total Bookings" value={stats.totalBookings} /></Grid>
-                    <Grid item xs={12} md={6}><StatCard title="Active Bookings" value={stats.activeBookings} /></Grid>
-                    <Grid item xs={12} md={6}><StatCard title="Cancelled Bookings" value={stats.cancelledBookings} /></Grid>
-                    <Grid item xs={12} md={6}><RecentActivitiesCarousel /></Grid>
-                    <Grid item xs={12} md={6}><MostActiveUser /></Grid>
+                <Box sx={{ p: 3, maxWidth: "1600px", maxHeight: "1500px", margin: "10px" }}>
+                
+
+                {/* Dashboard Grid */}
+                <Grid container spacing={1} alignItems="stretch">
+                    {/* Left Column: Recent Activities */}
+                    <Grid item xs={12} md={6}>
+                            <RecentActivitiesCarousel />
+                    </Grid>
+
+                    {/* Right Column: Statistics in Grid Format */}
+                    <Grid item xs={12} md={6}>
+                        <Grid container spacing={2}>
+                            <Grid item xs={6}>
+                                <StatCard title="Total Flats" value={16} />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <StatCard title="Total Users" value={18} />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <StatCard title="Total Bookings" value={35} />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <StatCard title="Active Bookings" value={24} />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <StatCard title="Cancelled Bookings" value={11} />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+
+                    {/* Full-width Section: Most Active User */}
+                    <Grid item xs={12}>
+                            <MostActiveUser />
+                    </Grid>
                 </Grid>
             </Box>
-
         </DashboardLayout>
     );
 };

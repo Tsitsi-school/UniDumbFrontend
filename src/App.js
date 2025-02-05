@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminDashboard from './pages/AdminDashboard';
 import ManageFlats from './pages/ManageFlats';
 import ManageUsers from './pages/ManageUsers';
@@ -13,6 +13,7 @@ import DashboardLayout from './components/Dashboard/DashboardLayout';
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to="/admin" replace />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/admin/manage-flats" element={<ManageFlats />} />
       <Route path="/admin/add-flat" element={<AddFlat />} />
